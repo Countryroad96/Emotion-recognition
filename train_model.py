@@ -1,9 +1,3 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[ ]:
-
-
 import numpy as np
 import scipy
 import pandas as pd
@@ -14,14 +8,29 @@ from tensorflow.keras.layers import Conv2D, Dense, BatchNormalization, Activatio
 from tensorflow.keras.optimizers import Adam, RMSprop, SGD
 from tensorflow.keras import regularizers
 from tensorflow.keras.callbacks import ModelCheckpoint, CSVLogger, TensorBoard, EarlyStopping, ReduceLROnPlateau
+from sklearn.metrics import classification_report, confusion_matrix
+import datetime
 import matplotlib.pyplot as plt
 from tensorflow.keras.utils import plot_model
 
-train_dir = '/dataset/train/'
-test_dir = '/dataset/test/'
+train_dir = 'dataset/train/'
+test_dir = 'dataset/test/'
 
 row, col = 48, 48
 classes = 6
+
+def count_exp(path, set_):
+    dict_ = {}
+    for expression in os.listdir(path):
+        dir_ = path + expression
+        dict_[expression] = len(os.listdir(dir_))
+    df = pd.DataFrame(dict_, index=[set_])
+    return df
+train_count = count_exp(train_dir, 'train')
+test_count = count_exp(test_dir, 'test')
+print(train_count)
+print(test_count)
+print('\n')
 
 train_datagen = ImageDataGenerator(rescale=1./255)
 
@@ -39,6 +48,7 @@ test_set = test_datagen.flow_from_directory(test_dir,
                                                 shuffle=True,
                                                 color_mode='grayscale',
                                                 class_mode='categorical')
+
 
 def get_model(input_size, classes=7):
      
@@ -68,9 +78,11 @@ def get_model(input_size, classes=7):
     return model
 
 fernet = get_model((row,col,1), classes)
+print('\n')
+fernet.summary()
 
-chk_path = r'/model/fernet7.h5'
-
+chk_path = r'model/fernet.h5'
+log_dir = r"logs/" + datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
 checkpoint = ModelCheckpoint(filepath=chk_path,
                              save_best_only=True,
                              verbose=1,
@@ -97,4 +109,45 @@ hist = fernet.fit(x=training_set,
                  callbacks=callbacks,
                  steps_per_epoch=steps_per_epoch,
                  validation_steps=validation_steps)
+
+
+plt.figure(figsize=(14,5))
+plt.subplot(1,2,2)
+plt.plot(hist.history['accuracy'])
+plt.plot(hist.history['val_accuracy'])
+plt.title('Model Accuracy')
+plt.xlabel('Epochs')
+plt.ylabel('Accuracy')
+plt.legend(['train', 'test'], loc='upper left')
+
+plt.subplot(1,2,1)
+plt.plot(hist.history['loss'])
+plt.plot(hist.history['val_loss'])
+plt.title('model Loss')
+plt.xlabel('Epochs')
+plt.ylabel('Loss')
+plt.legend(['train', 'test'], loc='upper left')
+plt.show()
+
+
+print('\n')
+y_pred = fernet.predict(training_set)
+y_pred = np.argmax(y_pred, axis=1)
+class_labels = test_set.class_indices
+class_labels = {v:k for k,v in class_labels.items()}
+
+cm_train = confusion_matrix(training_set.classes, y_pred)
+print('Confusion Matrix')
+print(cm_train)
+print('\nClassification Report')
+target_names = list(class_labels.values())
+print(classification_report(training_set.classes, y_pred, target_names=target_names))
+
+plt.figure(figsize=(8,8))
+plt.imshow(cm_train, interpolation='nearest')
+plt.colorbar()
+tick_mark = np.arange(len(target_names))
+_ = plt.xticks(tick_mark, target_names, rotation=90)
+_ = plt.yticks(tick_mark, target_names)
+
 

@@ -1,21 +1,15 @@
-#!/usr/bin/env python
-# coding: utf-8
-
-# In[ ]:
-
-
 import cv2
 import numpy as np   
 from matplotlib import pyplot as plt
 from tensorflow.keras.preprocessing.image import img_to_array
 from tensorflow.keras.models import load_model
 
-model_dir = "/model/modelname.h5"
-img_dir = "/pictures/filename.jpg"
+model_dir = "model/modelname.h5"
+img_dir = "pictures/filename.jpg"
 
 
 # Face detection XML load and trained model loading
-face_detection = cv2.CascadeClassifier('/haarcascade_file/haarcascade_frontalface_default.xml')
+face_detection = cv2.CascadeClassifier('haarcascade_file/haarcascade_frontalface_default.xml')
 emotion_classifier = load_model(model_dir, compile=False)
 EMOTIONS = ["Angry", "Fear", "Happy", "Neutral", "Sad", "Surprise"]
 
