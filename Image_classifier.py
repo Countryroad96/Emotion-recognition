@@ -4,7 +4,7 @@ from matplotlib import pyplot as plt
 from tensorflow.keras.preprocessing.image import img_to_array
 from tensorflow.keras.models import load_model
 
-model_dir = "model/modelname.h5"
+model_dir = "model/fernet.h5"
 img_dir = "pictures/filename.jpg"
 
 
